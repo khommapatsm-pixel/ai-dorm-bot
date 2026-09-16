@@ -1,33 +1,42 @@
 import { NextResponse } from 'next/server';
-import { messagingApi, webhook } from '@line/bot-sdk'; // <-- นำเข้าแค่ 2 หมวดหมู่หลัก
+import { messagingApi, webhook } from '@line/bot-sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai'; // นำเข้า Gemini
 
-const client = new messagingApi.MessagingApiClient({
+// 1. ตั้งค่าการเชื่อมต่อ
+const lineClient = new messagingApi.MessagingApiClient({
   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN || '',
 });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
-    // 1. ระบุว่า events คือ Event ของ webhook
     const events: webhook.Event[] = body.events;
-    
+
     if (events && events.length > 0) {
       for (const event of events) {
-        
         if (event.type === 'message' && event.message && event.message.type === 'text') {
-          // 2. แปลงชนิดข้อความให้ชัดเจนว่าเป็น TextMessageContent
           const messageContent = event.message as webhook.TextMessageContent;
           const userText = messageContent.text;
+
+          // 2. ให้ Gemini คิดคำตอบแทนเรา
+          // ใช้รุ่น flash เพราะประมวลผลเร็วและอยู่ในโควต้าใช้ฟรี
+          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
           
-          // 3. ระบุว่ากล่องข้อความตอบกลับคือ TextMessage ของ messagingApi
+          // สั่ง Persona พื้นฐานให้ AI
+          const prompt = `คุณคือ AI แอดมินหอพักชื่อ "น้องบอท" ให้ตอบคำถามนี้แบบสุภาพและเป็นมิตร: ${userText}`;
+          
+          const result = await model.generateContent(prompt);
+          const geminiReply = result.response.text(); 
+
+          // 3. ส่งคำตอบจาก Gemini กลับไปหาลูกค้าผ่าน Line
           const replyMessage: messagingApi.TextMessage = {
             type: 'text',
-            text: `ระบบแอดมินหอพักได้รับข้อความ: "${userText}" เรียบร้อยแล้วครับ!`
+            text: geminiReply
           };
-          
+
           if (event.replyToken) {
-            await client.replyMessage({
+            await lineClient.replyMessage({
               replyToken: event.replyToken,
               messages: [replyMessage]
             });
@@ -35,9 +44,7 @@ export async function POST(request: Request) {
         }
       }
     }
-    
     return NextResponse.json({ status: 'success' }, { status: 200 });
-    
   } catch (error) {
     console.error('Webhook Error:', error);
     return NextResponse.json({ status: 'error' }, { status: 500 });
