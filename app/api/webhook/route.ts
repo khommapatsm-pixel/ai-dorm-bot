@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
           // 2. ให้ Gemini คิดคำตอบแทนเรา
           // ใช้รุ่น flash เพราะประมวลผลเร็วและอยู่ในโควต้าใช้ฟรี
-          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
           
           // สั่ง Persona พื้นฐานให้ AI
           const prompt = `คุณคือ AI แอดมินหอพักชื่อ "น้องบอท" ให้ตอบคำถามนี้แบบสุภาพและเป็นมิตร: ${userText}`;
