@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
           try {
             // เรียกใช้โมเดล gemini-1.5-flash
-            const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+            const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
             
             const prompt = `คุณคือ AI แอดมินหอพักชื่อ "น้องบอท" ให้ตอบคำถามนี้แบบสุภาพและเป็นมิตร: ${userText}`;
             const result = await model.generateContent(prompt);
