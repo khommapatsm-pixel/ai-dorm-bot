@@ -28,7 +28,7 @@ export async function POST(request: Request) {
             const knowledgeBase = await getKnowledgeBase();
 
             // 2. ตั้งค่าโมเดล Gemini 3.6 Flash ตามที่คุณแก้ผ่านสำเร็จ
-            const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+            const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
 
             // 3. กำหนด Context และ System Instruction ให้ AI ทำหน้าที่เป็นแอดมินหอพัก
             const prompt = `
